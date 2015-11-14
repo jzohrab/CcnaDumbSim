@@ -1,7 +1,7 @@
-!Set up ipv6 routing
+Task: Set up ipv6 routing
 R1(config)#ipv6 unicast-routing 
 
-!Configure the interface
+Task: Configure the interface
 R1(config)#int f0/0
 R1(config-if)#ipv6 address a::1/48
 R1(config-if)#no shut
@@ -9,10 +9,12 @@ R1(config-if)#no shut
 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/0, changed state to up
 R1(config-if)#exit
 
-!Set up eigrp (sys 100)
+Task: Set up eigrp (sys 100)
 R1(config)#ipv6 router eigrp 100
 R1(config-rtr)#no shut
 R1(config-rtr)#int f0/0
 R1(config-if)#ipv6 eigrp 100
 R1(config-if)#exit
 R1(config)#exit
+
+Complete: Done setting up eigrp on ipv6!
