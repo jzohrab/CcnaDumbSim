@@ -9,12 +9,11 @@ R1(config-if)#no shut
 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/0, changed state to up
 R1(config-if)#exit
 
-Task: Set up eigrp (sys 100)
-R1(config)#ipv6 router eigrp 100
-R1(config-rtr)#no shut
+Task: Set up RIP (process name process1)
+R1(config)#ipv6 router rip process1
 R1(config-rtr)#int f0/0
-R1(config-if)#ipv6 eigrp 100
+R1(config-if)#ipv6 rip process1 enable
 R1(config-if)#exit
 R1(config)#exit
 
-Complete: Done setting up eigrp on ipv6!
+Complete: Done setting up rip on ipv6!

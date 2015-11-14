@@ -70,7 +70,14 @@ def colorize_line(lin)
   end
 end
 
-q = qs[0]
+puts "Questions:"
+qs.each_with_index do |q, index|
+  puts "  #{index + 1}. #{q['title']}"
+end
+print "Choose question: "
+i = gets.strip.to_i
+q = qs[i - 1]
+
 puts q["question"]
 lines = q["text"].split("\n")
 lines.each do |lin|

@@ -1,8 +1,12 @@
 - title: VLANs and inter-vlan routing
-  question: |-
-    configure a switch with VLANs A and B, and set up inter-vlan routing.
+  question: configure a switch with VLANs A and B, and set up inter-vlan routing.
   file: inter_vlan_routing.txt
 
 - title: ipv6 eigrp
   question: configure ipv6 eigrp on router, with int f0/0 (ipv6 a::1/48).  Use AS #100.
   file: ipv6_eigrp.txt
+
+- title: ipv6 rip
+  question: configure an ipv6 ip on a router, and set up rip.
+  file: ipv6_rip.txt
+
