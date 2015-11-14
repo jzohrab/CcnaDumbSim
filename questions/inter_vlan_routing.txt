@@ -1,0 +1,56 @@
+(Create the vlans, start with 10, name A)
+SW(config)#vlan 10
+SW(config-vlan)#name A
+SW(config-vlan)#exit
+
+... vlan 20 will be the same.
+
+(Add f0/10 to vlan A)
+SW(config)#int f0/10
+SW(config-if)#switchport mode access
+SW(config-if)#switchport access vlan 10
+
+(This port shouldn't be part of spanning-tree)
+SW(config-if)#spanning-tree portfast
+%Warning: portfast should only be enabled on ports connected to a single
+host. Connecting hubs, concentrators, switches, bridges, etc... to this
+interface  when portfast is enabled, can cause temporary bridging loops.
+Use with CAUTION
+
+%Portfast has been configured on FastEthernet0/10 but will only
+have effect when the interface is in a non-trunking mode.
+SW(config-if)#spanning-tree bpduguard enable
+SW(config-if)#exit
+
+... port f0/20 will be similar
+
+(Set up the line to the router to handle the VLANs on port f0/1)
+SW(config)#int f0/1
+SW(config-if)#switchport mode trunk
+SW(config-if)#switchport trunk allowed vlan 10,20
+SW(config-if)#exit
+SW(config)#exit
+
+Done the switch!
+
+Configure the router now.  The line out is on port f0/0.  VLAN 10 and 20 have default gateways set as 192.168.10.254 and .20.254.  Set up VLAN A first:
+
+R1(config)#int f0/0
+R1(config-if)#no shut
+
+%LINK-5-CHANGED: Interface FastEthernet0/0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/0, changed state to up
+R1(config-if)#int f0/0.10
+%LINK-5-CHANGED: Interface FastEthernet0/0.10, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/0.10, changed state to up
+R1(config-subif)#encapsulation dot1q 10
+R1(config-subif)#ip address 192.168.10.254 255.255.255.0
+R1(config-subif)#exit
+
+... int f0/0.20 will be the same, with a different dot1q VLAN and address.
+
+R1(config)#exit
+
+Done the router!
