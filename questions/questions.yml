@@ -10,3 +10,6 @@
   question: configure an ipv6 ip on a router, and set up rip.
   file: ipv6_rip.txt
 
+- title: etherchannel using LACP
+  question: configure etherchannel and lacp so that multiple VLANs can travel on the lines.
+  file: etherchannel.txt

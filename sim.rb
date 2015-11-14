@@ -36,6 +36,7 @@ end
 
 def test_input_line(lin)
   prompt, command = lin.strip.split("#")
+  command |= ""  # handle "R1#" edge case.
   command.strip!
   attempt = 0
   c = ""
