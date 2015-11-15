@@ -13,3 +13,7 @@
 - title: etherchannel using LACP
   question: configure etherchannel and lacp so that multiple VLANs can travel on the lines.
   file: etherchannel.txt
+
+- title: redundant routing with HSRP
+  question: configure HSRP
+  file: hsrp.txt

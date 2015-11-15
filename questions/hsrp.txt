@@ -1,0 +1,18 @@
+Objective: A host can ping a remote host, but its routing isn't redundant.   The host connects to a switch, which connects into R1 int f0/0, and into R2 int f0/0.  Set up redundant routing using HSRP for these two routers, with virtual IP 192.168.0.100.  R1 should be active router (priority 105), R2 standby (priority 100), and R1 should take control again when it comes on.  The priority should decrement on R1 if its f0/1 goes down.
+
+Task: configure R1
+R1(config)#int f0/0
+R1(config-if)#standby 1 ip 192.168.0.100
+R1(config-if)#standby 1 priority 105
+%HSRP-6-STATECHANGE: FastEthernet0/0 Grp 1 state Speak -> Standby
+%HSRP-6-STATECHANGE: FastEthernet0/0 Grp 1 state Standby -> Active
+R1(config-if)#standby 1 preempt
+R1(config-if)#standby 1 track f0/1
+R1(config-if)#exit
+R1(config)#exit
+
+Note: R2 is similar, with a different priority.
+Note: Be sure to change the host's gateway IP!
+
+Complete: finished R1!
+
