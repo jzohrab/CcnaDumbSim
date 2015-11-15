@@ -1,0 +1,37 @@
+Objective: Routers R1, R2, and R3 (IPs 192.168.1.1/24, .2/24, and .3/24) are on ethernet.  They should form a VRRP group with IP the same as R1 (so R1 is the master).
+
+Task: configure R1 f0/0, and set it up as the vrrp master (vrrp group 10).
+
+R1(config)#int f0/0
+R1(config-if)#ip address 192.168.1.1 255.255.255.0
+R1(config-if)#vrrp 10 ip 192.168.1.1
+*Mar  1 00:29:06.095: %VRRP-6-STATECHANGE: Fa0/0 Grp 10 state Init -> Master
+R1(config-if)#exit
+
+Task: configure R2 f0/0, set ip and priority 110
+
+R2(config)#int f0/0
+R2(config-if)#ip address 192.168.1.2 255.255.255.0
+R2(config-if)#vrrp 10 ip 192.168.1.1
+R2(config-if)#vrrp 10 priority 110
+*Mar  1 00:32:02.859: %VRRP-6-STATECHANGE: Fa0/0 Grp 10 state Init -> Backup
+R2(config-if)#exit
+
+Note: R3 is the same as R2, just a different priority.
+
+Task: verify VRRP configuration.
+
+
+R1#show vrrp
+FastEthernet0/0 – Group 10
+State is Master
+Virtual IP address is 192.168.1.1
+Virtual MAC address is 0000.5e00.010a
+Advertisement interval is 1.000 sec
+Preemption enabled
+Priority is 255
+Master Router is 192.168.1.1 (local), priority is 255
+Master Advertisement interval is 1.000 sec
+Master Down interval is 3.003 sec
+
+Complete: Success!

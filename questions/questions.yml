@@ -17,3 +17,8 @@
 - title: redundant routing with HSRP
   question: configure HSRP
   file: hsrp.txt
+
+- title: redundant routing with VRRP
+  question: configure VRRP
+  file: vrrp.txt
+
