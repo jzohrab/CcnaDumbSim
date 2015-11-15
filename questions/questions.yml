@@ -22,3 +22,6 @@
   question: configure VRRP
   file: vrrp.txt
 
+- title: ipv6 autoconfigure
+  question: ipv6 autoconfigure
+  file: ipv6_autoconfigure.txt

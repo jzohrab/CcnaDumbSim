@@ -4,6 +4,7 @@ Task: configure R1 f0/0, and set it up as the vrrp master (vrrp group 10).
 
 R1(config)#int f0/0
 R1(config-if)#ip address 192.168.1.1 255.255.255.0
+R1(config-if)#no shut
 R1(config-if)#vrrp 10 ip 192.168.1.1
 *Mar  1 00:29:06.095: %VRRP-6-STATECHANGE: Fa0/0 Grp 10 state Init -> Master
 R1(config-if)#exit
@@ -12,6 +13,7 @@ Task: configure R2 f0/0, set ip and priority 110
 
 R2(config)#int f0/0
 R2(config-if)#ip address 192.168.1.2 255.255.255.0
+R2(config-if)#no shut
 R2(config-if)#vrrp 10 ip 192.168.1.1
 R2(config-if)#vrrp 10 priority 110
 *Mar  1 00:32:02.859: %VRRP-6-STATECHANGE: Fa0/0 Grp 10 state Init -> Backup
