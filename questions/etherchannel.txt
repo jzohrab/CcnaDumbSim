@@ -45,3 +45,5 @@ S1(config-if)#switchport mode trunk
 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to up
 S1(config-if)#exit
 S1(config)#exit
+
+Complete: Done! But don't forget to do the other side!!

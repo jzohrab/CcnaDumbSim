@@ -25,3 +25,7 @@
 - title: ipv6 autoconfigure
   question: ipv6 autoconfigure
   file: ipv6_autoconfigure.txt
+
+- title: frame relay with subinterfaces
+  question: frame relay with subinterfaces
+  file: frame_relay_with_RIPv2.txt
