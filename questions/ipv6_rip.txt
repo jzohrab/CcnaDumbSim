@@ -1,3 +1,4 @@
+Title: ipv6 rip
 Objective: Configure an ipv6 ip on a router, and set up rip.
 
 Task: Set up ipv6 routing

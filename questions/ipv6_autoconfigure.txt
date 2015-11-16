@@ -1,3 +1,4 @@
+Title: ipv6 autoconfigure
 Objective: set up two routers connected via ethernet so that one router's ipv6 info can be autoconfigured using info from the other.
 
 Task: Set up ipv6 routing on R1, and assign 2001:abad:beef::1/64 to f0/0.

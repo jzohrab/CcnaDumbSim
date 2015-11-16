@@ -1,3 +1,4 @@
+Title: redundant routing with VRRP
 Objective: Routers R1, R2, and R3 (IPs 192.168.1.1/24, .2/24, and .3/24) are on ethernet.  They should form a VRRP group with IP the same as R1 (so R1 is the master).
 
 Task: configure R1 f0/0, and set it up as the vrrp master (vrrp group 10).

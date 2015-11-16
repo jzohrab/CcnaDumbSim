@@ -1,3 +1,4 @@
+Title: redundant routing with HSRP
 Objective: A host can ping a remote host, but its routing isn't redundant.   The host connects to a switch, which connects into R1 int f0/0, and into R2 int f0/0.  Set up redundant routing using HSRP for these two routers, with virtual IP 192.168.0.100.  R1 should be active router (priority 105), R2 standby (priority 100), and R1 should take control again when it comes on.  The priority should decrement on R1 if its f0/1 goes down.
 
 Task: configure R1

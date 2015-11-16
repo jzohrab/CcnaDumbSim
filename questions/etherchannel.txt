@@ -1,3 +1,4 @@
+Title: etherchannel using LACP
 Objective: set up etherchannel on a switch to carry multiple vlans on ports f0/1 and f0/2.
 
 Task: ensure that VLAN info propagates out f0/1.  Use name "something".

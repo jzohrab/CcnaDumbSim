@@ -1,3 +1,4 @@
+Title: frame relay with subinterfaces
 R1 is the hub, and R2 and R3 are spokes.  The DLCIs 102 and 103 connect R1 out to R2 and to R3 respectively, 201 goes from R2 to R1, and 301 R3 to R1.  Set up frame relay with subinterfaces on R1, and then rip v2 the routers.
 
 Task: set up R1.  Its f0/0 is 192.168.1.254/24.
