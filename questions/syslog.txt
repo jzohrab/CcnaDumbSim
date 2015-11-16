@@ -1,0 +1,16 @@
+Title: Syslog
+
+Objective: set up logging on a router to send debugging (and lower) messages to syslog server 192.168.1.2.  Time-stamp the messages.
+
+Task: set up syslog.
+
+R1(config)#logging 192.168.1.2
+R1(config)#logging trap debugging
+R1(config)#service timestamps log datetime msec
+R1(config)#exit
+
+Task: turn on rip debugging
+R1#debug ip rip
+RIP protocol debugging is on
+
+Complete: All set!
