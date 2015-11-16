@@ -1,3 +1,5 @@
+Objective: Configure an ipv6 ip on a router, and set up rip.
+
 Task: Set up ipv6 routing
 R1(config)#ipv6 unicast-routing 
 
