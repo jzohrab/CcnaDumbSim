@@ -62,6 +62,8 @@ end
 # Apply some colors to a plain line.
 def colorize_line(lin)
   case lin
+  when /^Title:/
+    return lin.bold
   when /^Task:/
     return lin.blue.bold
   when /^Note:/
