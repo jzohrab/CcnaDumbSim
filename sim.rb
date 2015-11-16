@@ -55,7 +55,7 @@ def test_input_line(lin)
     end
   end
   if (attempt == 3 && c != command)
-    puts "ANSWER: #{command}"
+    puts "ANSWER: #{command}".red.bold
   end
 end
 
