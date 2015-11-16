@@ -2,8 +2,10 @@
 # them in PacketTracer can be a hassle.
 
 require 'yaml'
-qs = YAML.load(File.read(File.join("questions", "questions.yml")))
-qs.map! { |q| q["text"] = File.read(File.join("questions", q["file"])); q }
+qs = nil
+Dir.chdir('questions') do
+  qs = Dir.glob('*.txt')
+end
 
 # Colorizing output for interest.
 # http://stackoverflow.com/questions/1489183/colorized-ruby-output
@@ -73,14 +75,13 @@ end
 
 puts "Questions:"
 qs.each_with_index do |q, index|
-  puts "  #{index + 1}. #{q['title']}"
+  puts "  #{index + 1}. #{q.gsub('_', ' ').gsub('.txt', '')}"
 end
 print "Choose question: "
 i = gets.strip.to_i
 q = qs[i - 1]
 
-puts q["question"]
-lines = q["text"].split("\n")
+lines = File.read(File.join('questions', q)).split("\n")
 lines.each do |lin|
   if lin.include?('#')
     test_input_line(lin)
