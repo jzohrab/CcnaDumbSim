@@ -29,3 +29,7 @@
 - title: frame relay with subinterfaces
   question: frame relay with subinterfaces
   file: frame_relay_with_RIPv2.txt
+
+- title: netflow
+  question: setup netflow
+  file: netflow.txt
