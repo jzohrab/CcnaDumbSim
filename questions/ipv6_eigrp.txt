@@ -1,5 +1,5 @@
 Title: ipv6 eigrp
-Objective: configure ipv6 eigrp on router, with int f0/0 (ipv6 a::1/48).  Use AS #100.
+Objective: configure ipv6 eigrp on router, with int f0/0 (ipv6 a::1/48).  Use AS 100.
 
 Task: Set up ipv6 routing
 R1(config)#ipv6 unicast-routing 
