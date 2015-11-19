@@ -1,0 +1,18 @@
+Objective: your host inside your network (network 1.1.1.0/24) connects to router f0/0, when the goes outside via f0/1.  Set up NAT overload using the outside interface.
+
+Task: Set up the router to NAT, specify the computers that will be NATted, and then hook it together!
+
+R1#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#int f0/0
+R1(config-if)#ip nat inside
+R1(config-if)#exit
+R1(config)#int f0/1
+R1(config-if)#ip nat outside
+R1(config-if)#exit
+
+R1(config)#access-list 1 permit 1.1.1.0 0.0.0.255
+R1(config)#ip nat inside source list 1 interface f0/1 overload
+R1(config)#exit
+
+Complete: Good stuff!
