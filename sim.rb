@@ -85,7 +85,9 @@ q = qs[i - 1]
 
 lines = File.read(File.join('questions', q)).split("\n")
 lines.each do |lin|
-  if lin.include?('#')
+  if (lin.strip =~ /^#/)
+    puts lin.gsub(/^#/, '').green
+  elsif lin.include?('#')
     test_input_line(lin)
   else
     puts colorize_line(lin)
