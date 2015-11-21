@@ -1,0 +1,84 @@
+Title: From book chapter 8
+
+Objective: You have 2 routers (SF and LA) which connect to a Corp core router on serial.  SF and LA both have backbone networks on fast ethernet.  First, config DHCP on the corp that
+
+Note: information about the SF router
+
+# Router(config)#hostname SF
+# SF(config)#int f0/0
+# SF(config-if)#ip address 192.168.10.1 255.255.255.0
+# SF(config-if)#no shut
+# %LINK-5-CHANGED: Interface FastEthernet0/0, changed state to up
+# %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/0, changed state to up
+# SF(config-if)#int s0/3/0
+# SF(config-if)#ip address 172.16.10.2 255.255.255.252
+# SF(config-if)#no shut
+
+Note: information about the Corp router
+# Corp(config)#int s0/3/0
+# Corp(config-if)#clock rate 4000000
+# Corp(config-if)#ip address 172.16.10.1 255.255.255.252
+# Corp(config-if)#no shut
+
+
+Note: LA router is similar, with f0/0 network 192.168.20.0/24, and s0/3/0 172.16.10.6/30.
+
+Task: configure DHCP for SF, pool name SF_LAN.  First exclude ips 1-10.  The network has a DNS server at 4.4.4.4.
+
+Corp#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Corp(config)#ip dhcp excluded-address 192.168.10.1 192.168.10.10
+Corp(config)#ip dhcp pool SF_LAN
+Corp(dhcp-config)#network 192.168.10.0 255.255.255.0
+Corp(dhcp-config)#default-router 192.168.10.1
+Corp(dhcp-config)#dns-server 4.4.4.4
+Corp(dhcp-config)#exit
+
+Note: the LA_LAN is similar.
+
+Task: hosts in SF LAN can't get DHCP because DHCP broadcasts are blocked at the router.  Fix that.
+
+SF#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+SF(config)#int f0/0
+SF(config-if)#ip helper-address 172.16.10.1
+SF(config-if)#exit
+SF(config)#exit
+
+Task: DHCP doesn't work for SF or LA yet, because the Corp router doesn't know about those networks.  Config static routes - for SF (.10.0), use the next hop router; for LA, use the exit serial interface s0/3/1.  For both, the admin distance should be 150.
+Corp#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Corp(config)#ip route 192.168.10.0 255.255.255.0 172.16.10.2 150
+Corp(config)#ip route 192.168.20.0 255.255.255.0 s0/3/1 150
+Corp(config)#exit
+%SYS-5-CONFIG_I: Configured from console by console
+Corp#exit
+
+Complete: DHCP should be working now!
+
+Task: check the dhcp addresses leased, and then check for conflicts
+
+Corp#show ip dhcp binding
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+192.168.10.22    0003.E4B1.54C5           --                     Automatic
+192.168.20.32    0001.979B.9B35           --                     Automatic
+
+Corp#show ip dhcp conflict
+IP address        Detection method   Detection time          VRF
+
+Complete: verified!
+
+Task: set up static routing so that a host on the SF backbone (192.168.10.0/24) can reach one on the LA backbone (.20.0/24).  Use static route with next-hop on SF, and a DEFAULT route with exit interface on LA.  Both should have admin distance 150, since you're adding RIP soon.
+
+SF#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+SF(config)#ip route 192.168.20.0 255.255.255.0 172.16.10.1 150
+SF(config)#exit
+
+LA#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+LA(config)#ip route 0.0.0.0 0.0.0.0 s0/3/0 150
+LA(config)#exit
+
+Complete: all done!  Can add dynamic routing now if you want.

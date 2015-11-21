@@ -1,0 +1,29 @@
+Objective: mess around with NTP on the router.
+
+Task: show the router's current time.
+R1#show clock
+*0:55:35.623 UTC Fri Mar 5 1993
+
+Task: this router should use NTP server 2.2.2.3/252.
+
+R1#config t
+R1(config)#ntp server 2.2.2.3 version 4
+R1(config)#exit
+%SYS-5-CONFIG_I: Configured from console by console
+
+Task: show the current time.
+
+R1#show clock
+*18:39:30.702 UTC Mon Nov 2 2015
+
+Task: Check the synchronization
+R1#show ntp status
+Clock is synchronized, stratum 2, reference is 2.2.2.3
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**19
+reference time is D9B7FC5D.00000104 (18:39:25.260 UTC Mon Nov 2 2015)
+clock offset is 0.00 msec, root delay is 0.00  msec
+root dispersion is 0.02 msec, peer dispersion is 0.02 msec.
+
+Note: apparently can also use "show ntp associations", but don't have that available.
+
+Complete: Done!
