@@ -1,0 +1,165 @@
+Title: From Lammle book chapter 9
+
+Objective: You have 2 routers (SF and LA) which connect to a Corp core router on serial.  SF and LA both have backbone networks on fast ethernet.  DHCP is configured.  Set up OSPF on the routers.
+
+# Corp# show ip int brief
+# Interface              IP-Address      OK? Method Status 
+# FastEthernet0/0        10.10.10.1      YES manual up                    up
+# Serial0/3/0            172.16.10.1     YES manual up                    up
+# Serial0/3/1            172.16.10.5     YES manual up                    up
+
+Task: config ospf on Corp router, with exact interface IP matches, area 0, process 128.  Do the interfaces in ascending order.
+
+Corp(config)#router ospf 128
+Corp(config-router)#network 10.10.10.1 0.0.0.0 area 0
+Corp(config-router)#network 172.16.10.1 0.0.0.0 area 0
+Corp(config-router)#network 172.16.10.5 0.0.0.0 area 0
+Corp(config-router)#exit
+
+
+Task: config ospf on LA router, using wildcards, area 0, process 100, in ascending order.
+
+# Some info:
+# LA#show ip int brief
+# Interface              IP-Address      OK? Method Status                
+# FastEthernet0/0        192.168.20.1    YES manual up                    up
+# Serial0/3/0            172.16.10.6     YES manual up                    up
+
+LA(config)#router ospf 100
+LA(config-router)#network 172.16.10.4 0.0.0.3 area 0
+LA(config-router)#network 192.168.20.0 0.0.0.255 area 0
+LA(config-router)#exit
+
+Complete: hooray!
+
+Note: SF router is similar.
+
+Task: you don't want OSPF going out on LA's f0/1 interface.
+
+LA(config)#router ospf 100
+LA(config-router)#passive-interface f0/1
+LA(config-router)#exit
+LA(config)#exit
+
+
+Task: Corp's f0/0 goes to the internet.  Send any unknown IPs to that interface, and ensure it propagates everywhere.  Use the same OSPF process as before (128).
+
+Corp(config)#ip route 0.0.0.0 0.0.0.0 f0/0
+Corp(config)#router ospf 128
+Corp(config-router)#default-information originate
+Corp(config-router)#exit
+
+
+Task: shoot, you forgot loopback interfaces.  Never forget those.  Add 172.31.1.1/32 to Corp, and to ospf (same process, 128).
+
+Corp(config)#int loopback 0
+%LINK-5-CHANGED: Interface Loopback0, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Loopback0, changed state to up
+Corp(config-if)#ip address 172.31.1.1 255.255.255.255
+Corp(config-if)#exit
+Corp(config)#router ospf 128
+Corp(config-router)#network 172.31.1.1 0.0.0.0 area 0
+Corp(config-router)#exit
+Corp(config)#exit
+
+Complete: good, thanks.
+
+Task: set the router ID for the SF router to 223.255.255.254, and then restart the OSPF process for all routers.  Then check the router ID on SF.
+
+# SF(config)#do show ip ospf
+#  Routing Process "ospf 300" with ID 192.168.10.1
+# ...
+
+SF(config)#router ospf 300
+SF(config-router)#router-id 223.255.255.254
+Reload or use "clear ip ospf process" command, for this to take effect
+Note: just use the "do" command here.
+SF(config-router)#do clear ip ospf process
+Reset ALL OSPF processes? [no]: yes
+00:35:49: %OSPF-5-ADJCHG: Process 300, Nbr 172.16.10.5 on Serial0/3/0 from FULL to DOWN, Neighbor Down: Adjacency forced to reset
+00:35:49: %OSPF-5-ADJCHG: Process 300, Nbr 172.16.10.5 on Serial0/3/0 from FULL to DOWN, Neighbor Down: Interface down or detached
+00:35:55: %OSPF-5-ADJCHG: Process 300, Nbr 172.16.10.5 on Serial0/3/0 from LOADING to FULL, Loading Done
+
+Note: just use the "do" command here as well to show the Router ID.
+SF(config-router)#do show ip ospf
+ Routing Process "ospf 300" with ID 223.255.255.254
+...
+
+Complete: nice, RID set.
+
+Task: Verify ospf things.
+
+Task: Show info about ospf - the router, LSA updates, etc:
+
+SF#show ip ospf
+ Routing Process "ospf 300" with ID 223.255.255.254
+ Supports only single TOS(TOS0) routes
+ Supports opaque LSA
+ SPF schedule delay 5 secs, Hold time between two SPFs 10 secs
+ Minimum LSA interval 5 secs. Minimum LSA arrival 1 secs
+...
+
+
+Task: Show the full set of routers in the internetwork:
+
+SF#show ip ospf database
+            OSPF Router with ID (223.255.255.254) (Process ID 300)
+
+                Router Link States (Area 0)
+
+Link ID         ADV Router      Age         Seq        Checksum Link count
+172.16.10.5     172.16.10.5     323         0x80000008 0x005d9f 6
+192.168.10.1    192.168.10.1    1477        0x80000003 0x00847a 3
+...
+                Type-5 AS External Link States
+Link ID         ADV Router      Age         Seq        Checksum Tag
+0.0.0.0         172.16.10.5     1122        0x80000001 0x0026e0 1
+
+
+Task: show the router ID, designated router, bdr, etc for int f0/0:
+
+SF#show ip ospf int f0/0
+
+FastEthernet0/0 is up, line protocol is up
+  Internet address is 192.168.10.1/24, Area 0
+  Process ID 300, Router ID 223.255.255.254, Network Type BROADCAST, Cost: 1
+  Transmit Delay is 1 sec, State DR, Priority 1
+  Designated Router (ID) 223.255.255.254, Interface address 192.168.10.1
+  No backup designated router on this network
+  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
+ ...
+
+
+Task: show the DR, BDR summary for corp:
+
+Corp#show ip ospf neighbor
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+223.255.255.254   0   FULL/  -        00:00:36    172.16.10.2     Serial0/3/0
+192.168.20.1      0   FULL/  -        00:00:35    172.16.10.6     Serial0/3/1
+10.10.10.2        1   FULL/BDR        00:00:36    10.10.10.2      Fast0/0
+
+
+Task: show the routing protocols in use
+
+Corp#show ip protocols
+
+Routing Protocol is "ospf 128"
+  Outgoing update filter list for all interfaces is not set 
+  Incoming update filter list for all interfaces is not set 
+  Router ID 172.16.10.5
+  It is an autonomous system boundary router
+  Redistributing External Routes from,
+  Number of areas in this router is 1. 1 normal 0 stub 0 nssa
+  Maximum path: 4
+  Routing for Networks:
+    10.10.10.1 0.0.0.0 area 0
+    172.16.10.1 0.0.0.0 area 0
+    172.16.10.5 0.0.0.0 area 0
+    172.31.1.1 0.0.0.0 area 0
+  Routing Information Sources:  
+    Gateway         Distance      Last Update 
+    10.10.10.2           110      00:01:38
+
+
+Complete: ALL DONE!
