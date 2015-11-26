@@ -1,4 +1,4 @@
-Objective: your host inside your network (network 1.1.1.0/24) connects to router f0/0, when the goes outside via f0/1.  Set up NAT overload using the outside interface.
+Objective: your host inside your network (network 1.1.1.0/24) connects to router f0/0, then goes outside via f0/1.  Set up NAT overload using the outside interface.
 
 Task: Set up the router to NAT, specify the computers that will be NATted, and then hook it together!
 

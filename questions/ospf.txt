@@ -24,6 +24,7 @@ Task: config ospf on LA router, using wildcards, area 0, process 100, in ascendi
 # Interface              IP-Address      OK? Method Status                
 # FastEthernet0/0        192.168.20.1    YES manual up                    up
 # Serial0/3/0            172.16.10.6     YES manual up                    up
+# Also note the networks are /24 and /30 respectively.
 
 LA(config)#router ospf 100
 LA(config-router)#network 172.16.10.4 0.0.0.3 area 0
