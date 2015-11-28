@@ -1,0 +1,50 @@
+Objective: set up PPP with CHAP authentication.
+
+Task: set the router hostname to be R1, then set up s0/3/0 with IP 10.1.1.5/30, clock rate 4000000, to use PPP (in that order).
+
+Router#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#hostname R1
+
+# Note: some other configuration ...
+# R1(config)#int f0/0
+# R1(config-if)#ip address 192.168.10.254 255.255.255.0
+# R1(config-if)#no shut
+# %LINK-5-CHANGED: Interface FastEthernet0/0, changed state to up
+# %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/0, changed state to up
+
+R1(config)#int s0/3/0
+R1(config-if)#ip address 10.1.1.5 255.255.255.252
+R1(config-if)#clock rate 4000000
+R1(config-if)#encapsulation ppp
+R1(config-if)#no shut
+
+%LINK-5-CHANGED: Interface Serial0/3/0, changed state to down
+%LINK-5-CHANGED: Interface Serial0/3/0, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/3/0, changed state to up
+
+R1(config-if)#exit
+
+
+Task: the other router R2 has "username R1 password ChapAuth".  Set up this router for CHAP with the other router.
+
+R1(config)#username R2 password ChapAuth
+R1(config)#int s0/3/0
+R1(config-if)#ppp authentication chap pap
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/3/0, changed state to down
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/3/0, changed state to up
+
+Task: check the status of the interface (use "do" form of command)
+
+R1(config-if)#do show int s0/3/0
+Serial0/3/0 is up, line protocol is up (connected)
+  Hardware is HD64570
+  Internet address is 10.1.1.5/30
+  MTU 1500 bytes, BW 1544 Kbit, DLY 20000 usec,
+     reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation PPP, loopback not set, keepalive set (10 sec)
+  LCP Open
+...
+
+Complete: Done!

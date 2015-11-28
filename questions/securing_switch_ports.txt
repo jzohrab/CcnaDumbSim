@@ -1,0 +1,20 @@
+Objective: set up a switch so that only mac aa.bb.cc.dd.ee.ff can connect to f0/1, and all other incoming packets are dropped.
+
+Task: First set the mac, then set the drop!
+
+SW(config)#int f0/1
+SW(config-if)#switchport mode access
+SW(config-if)#switchport port-security
+SW(config-if)#switchport port-security mac-address aabb.ccdd.eeff
+SW(config-if)#switchport port-security violation restrict
+
+Complete: now check it.
+
+SW#show port-security
+Secure Port MaxSecureAddr CurrentAddr SecurityViolation Security Action
+               (Count)       (Count)        (Count)
+--------------------------------------------------------------------
+        Fa0/1        1          1                 0         Restrict
+----------------------------------------------------------------------
+
+Complete: all tied up!
