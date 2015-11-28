@@ -1,0 +1,142 @@
+Objective: set up EIGRP on a router.
+
+Some information:
+# CORE#show protocols
+# Global values:
+#   Internet Protocol routing is enabled
+# FastEthernet0/0 is up, line protocol is up
+#   Internet address is 10.10.1.254/24
+# FastEthernet0/1 is up, line protocol is up
+#   Internet address is 10.10.2.254/24
+# Serial0/3/0 is up, line protocol is up
+#   Internet address is 172.16.0.1/30
+# Serial0/3/1 is up, line protocol is up
+#   Internet address is 172.16.0.9/30
+# Vlan1 is administratively down, line protocol is down
+
+Task: set up EIGR on the CORE router (AS number 100).  Do the networks in ascending order.
+
+CORE#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+CORE(config)#router eigrp 100
+CORE(config-router)#no auto-summary
+CORE(config-router)#network 10.0.0.0
+CORE(config-router)#network 172.16.0.0
+%DUAL-5-NBRCHANGE: IP-EIGRP 100: Neighbor 172.16.0.2 (Serial0/3/0) is up: new adjacency
+%DUAL-5-NBRCHANGE: IP-EIGRP 100: Neighbor 172.16.0.10 (Serial0/3/1) is up: new adjacency
+CORE(config-router)#exit
+CORE(config)#exit
+
+Task: you don't want to advertise EIGRP out of f0/1.
+CORE(config)#router eigrp 100
+CORE(config-router)#passive-interface f0/1
+CORE(config-router)#exit
+
+Complete: Done setting up EIGRP!  Now time to check some things.
+
+
+See what routers this router is exchanging EIGRP info with.
+
+CORE#show ip eigrp neighbors
+IP-EIGRP neighbors for process 100
+H   Address         Interface      Hold Uptime    SRTT   RTO   Q   Seq
+                                   (sec)          (ms)        Cnt  Num
+0   172.16.0.2      Se0/3/0        14   00:03:32  40     1000  0   52
+1   172.16.0.10     Se0/3/1        11   00:03:32  40     1000  0   40
+
+SRTT = "smooth round trip timer"
+
+
+See what interfaces are participating in EIGRP.
+
+CORE#show ip eigrp interfaces
+IP-EIGRP interfaces for process 100
+
+                        Xmit Queue   Mean   Pacing Time   Multicast    Pending
+Interface        Peers  Un/Reliable  SRTT   Un/Reliable   Flow Timer   Routes
+Fa0/0              0        0/0      1236       0/10           0           0
+Se0/3/0            1        0/0      1236       0/10           0           0
+Se0/3/1            1        0/0      1236       0/10           0           0
+
+
+See what's in the routing table.
+
+CORE#show ip route
+Codes: C - connected, S - static, I - IGRP, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+...
+
+Gateway of last resort is not set
+
+     10.0.0.0/24 is subnetted, 5 subnets
+C       10.10.1.0 is directly connected, FastEthernet0/0
+C       10.10.2.0 is directly connected, FastEthernet0/1
+D       10.10.20.0 [90/2172416] via 172.16.0.2, 00:02:23, Serial0/3/0
+D       10.10.30.0 [90/2172672] via 172.16.0.2, 00:02:23, Serial0/3/0
+                   [90/2172672] via 172.16.0.10, 00:02:23, Serial0/3/1
+D       10.10.50.0 [90/2172416] via 172.16.0.10, 00:02:23, Serial0/3/1
+     172.16.0.0/30 is subnetted, 4 subnets
+C       172.16.0.0 is directly connected, Serial0/3/0
+D       172.16.0.4 [90/2172416] via 172.16.0.2, 00:02:23, Serial0/3/0
+C       172.16.0.8 is directly connected, Serial0/3/1
+D       172.16.0.12 [90/2172416] via 172.16.0.10, 00:02:23, Serial0/3/1
+
+Check the K values on this router.
+
+CORE#show ip protocols
+
+Routing Protocol is "eigrp  100 " 
+  Outgoing update filter list for all interfaces is not set 
+  Incoming update filter list for all interfaces is not set 
+  Default networks flagged in outgoing updates  
+  Default networks accepted from incoming updates 
+  EIGRP metric weight K1=1, K2=0, K3=1, K4=0, K5=0
+  EIGRP maximum hopcount 100
+  EIGRP maximum metric variance 1
+Redistributing: eigrp 100
+  Automatic network summarization is not in effect  
+  Maximum path: 4
+  Routing for Networks:  
+     172.16.0.0
+     10.0.0.0
+  Passive Interface(s): 
+    FastEthernet0/1
+  Routing Information Sources:  
+    Gateway         Distance      Last Update 
+    172.16.0.2      90            120865076  
+    172.16.0.10     90            120865076  
+  Distance: internal 90 external 170
+
+
+Check the stats on interface s0/3/0, like bandwidth.
+
+CORE#show int s0/3/0
+Serial0/3/0 is up, line protocol is up (connected)
+  Hardware is HD64570
+  Internet address is 172.16.0.1/30
+  MTU 1500 bytes, BW 1544 Kbit, DLY 20000 usec,
+     reliability 255/255, txload 1/255, rxload 1/255
+
+Show the table with all the routes, including successors, feasible successors, etc.
+
+CORE#show ip eigrp topology
+IP-EIGRP Topology Table for AS 100
+
+Codes: P - Passive, A - Active, U - Update, Q - Query, R - Reply,
+       r - Reply status
+
+P 10.10.1.0/24, 1 successors, FD is 28160
+         via Connected, FastEthernet0/0
+P 10.10.2.0/24, 1 successors, FD is 28160
+         via Connected, FastEthernet0/1
+P 10.10.20.0/24, 1 successors, FD is 2172416
+         via 172.16.0.2 (2172416/28160), Serial0/3/0
+         via 172.16.0.10 (2175232/30976), Serial0/3/1
+
+Note: eg for "via 172.16.0.10 (2175232/30976), Serial0/3/1", it's FD/AD.
+
+Remember "show ip route" returned the following, so there are 2 possible paths to 10.10.30.0 network.
+
+# D       10.10.30.0 [90/2172672] via 172.16.0.2, 00:02:23, Serial0/3/0
+#                    [90/2172672] via 172.16.0.10, 00:02:23, Serial0/3/1
+
