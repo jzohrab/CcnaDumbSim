@@ -1,0 +1,117 @@
+Objective: set up standard, extended, and named ACLs.
+
+Task: Nothing in the 172.16.40.0/24 network should get out f0/1.  Create the ACL. Standard ACLs should be number 10, extended should be 50.
+
+R3#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R3(config)#access-list 10 deny 172.16.40.0 0.0.0.255
+R3(config)#access-list 10 permit any
+# Note: you could have also done the following:
+# R3(config)#access-list 10 permit 0.0.0.0 255.255.255.255
+R3(config)#int f0/1
+R3(config-if)#ip access-group 10 out
+R3(config-if)#exit
+R3(config)#exit
+
+Task: show the access list, then show it on the interface.
+
+R3#show access-list
+Standard IP access list 10
+    10 deny 172.16.40.0 0.0.0.255
+    20 permit any
+R3#show ip int f0/1
+FastEthernet0/1 is up, line protocol is up (connected)
+  Internet address is 192.168.20.254/24
+  Broadcast address is 255.255.255.255
+  ... snip ...
+  Outgoing access list is 10
+  Inbound  access list is not set
+  ... snip ...
+
+Complete: done standard ACL!
+
+Task: only host 1.1.1.1 should be allowed to telnet into this router.  Add a standard ACL (number 50) with remark "Prevent telnet" for that host only, and apply it to lines 0 through 15.
+
+R3(config)#access-list 50 remark Prevent telnet
+R3(config)#access-list 50 permit host 1.1.1.1
+R3(config)#line vty 0 15
+R3(config-line)#access-class 50 in
+R3(config-line)#exit
+
+Complete: done telnet block!
+
+
+Task: only host 1.1.1.1 should be able to HTTP to host 2.2.2.2.  All other HTTP traffic to that server should be blocked.  Otherwise, anything goes.  Create access list 110, and apply it to f0/0 (inbound).
+
+R3(config)#access-list 110 permit tcp host 1.1.1.1 host 2.2.2.2 eq 80
+R3(config)#access-list 110 deny tcp any host 2.2.2.2 eq 80
+R3(config)#access-list 110 permit ip any any
+R3(config)#int f0/0
+R3(config-if)#ip access-group 110 in
+R3(config-if)#exit
+R3(config)#exit
+
+Complete: done extended ACL!
+
+Task: create a standard named access list called MyList that allows 172.16.128.0/19, then denies 172.16.48.0/20, and permits the rest.  Then use that on f0/0 (outbound).
+
+R3#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R3(config)#ip access-list standard MyList
+R3(config-std-nacl)#permit 172.16.128.0 0.0.31.255
+R3(config-std-nacl)#deny 172.16.48.0 0.0.15.255
+R3(config-std-nacl)#permit any
+R3(config-std-nacl)#exit
+R3(config)#int f0/0
+R3(config-if)#ip access-group MyList out
+R3(config-if)#exit
+R3(config)#exit
+
+Task: show the ACLs on f0/0.
+
+R3#show ip int f0/0
+FastEthernet0/0 is up, line protocol is up (connected)
+  Internet address is 10.0.0.6/30
+  Broadcast address is 255.255.255.255
+  Address determined by setup command
+  MTU is 1500 bytes
+  Helper address is not set
+  Directed broadcast forwarding is disabled
+  Outgoing access list is MyList
+  Inbound  access list is 110
+  ... snip ...
+
+Task: show all the access lists.
+
+R3#show access-list
+Standard IP access list 10
+    10 deny 172.16.40.0 0.0.0.255
+    20 permit any
+Standard IP access list 50
+    10 permit host 1.1.1.1
+Extended IP access list 110
+    10 permit tcp host 1.1.1.1 host 2.2.2.2 eq www
+    20 deny tcp any host 2.2.2.2 eq www
+    30 permit ip any any
+Standard IP access list MyList
+    10 permit 172.16.128.0 0.0.31.255
+    20 deny 172.16.48.0 0.0.15.255
+    30 permit any
+
+Task: edit the MyList access list, remove line 10, and add a new line 25 denying all hosts in 172.17.0.0/16 network.
+R3(config)#ip access-list standard MyList
+R3(config-std-nacl)#no 10
+R3(config-std-nacl)#25 deny 172.17.0.0 0.0.255.255
+R3(config-std-nacl)#exit
+R3(config)#exit
+
+Task: double-check the ACL.
+
+R3#show access-list
+...
+Standard IP access list MyList
+    20 deny 172.16.48.0 0.0.15.255
+    25 deny 172.17.0.0 0.0.255.255
+    30 permit any
+
+Complete: done!
