@@ -17,7 +17,9 @@ Currently only tested on MacOSX.
 
 ## Installation
 
-You should have Ruby installed.
+You should have Ruby installed.  Download this to a new directory, or clone the
+repo.  This reads local text files only, so there's nothing to install or
+configure.
 
 ## Usage
 
