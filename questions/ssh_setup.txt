@@ -1,0 +1,55 @@
+Objective: set up SSH for a router (or switch).  Username/secret = cisco/cisco, domain name = cisco.com.
+
+Task: create the user, then create the SSH key with version 2.
+
+SF#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+SF(config)#username cisco privilege 15 secret cisco
+SF(config)#ip domain-name cisco.com
+SF(config)#crypto key generate rsa
+The name for the keys will be: SF.cisco.com
+Choose the size of the key modulus in the range of 360 to 2048 for your
+  General Purpose Keys. Choosing a key modulus greater than 512 may take
+  a few minutes.
+
+How many bits in the modulus [512]: 
+% Generating 512 bit RSA keys, keys will be non-exportable...[OK]
+
+SF(config)#ip ssh version 2
+*Mar 1 6:59:24.892:  RSA key size needs to be at least 768 bits for ssh version 2
+*Mar 1 6:59:24.892:  %SSH-5-ENABLED: SSH 1.5 has been enabled 
+Please create RSA keys (of at least 768 bits size) to enable SSH v2.
+
+Task: set up ssh on the terminal lines (0 - 15)
+
+SF(config)#line vty 0 15
+SF(config-line)#transport input ssh
+SF(config-line)#login local
+SF(config-line)#exit
+
+%SYS-5-CONFIG_I: Configured from console by console
+
+Task: create a loopback with ip 1.1.1.1/24
+
+SF(config)#int loopback 0
+
+%LINK-5-CHANGED: Interface Loopback0, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Loopback0, changed state to up
+
+SF(config-if)#ip address 1.1.1.1 255.255.255.0
+SF(config-if)#no shut
+SF(config-if)#exit
+
+Complete: done!  can't telnet, but can ssh!
+
+# PC>telnet 1.1.1.1
+# Trying 1.1.1.1 ...Open
+#
+# [Connection to 1.1.1.1 closed by foreign host]
+# 
+# PC>ssh -l cisco 1.1.1.1
+# Open
+# Password: 
+# 
+# SF#
+
