@@ -1,28 +1,30 @@
 Objective: set up PPP with PAP authentication.
 
-R1 playing the role of a PAP server and R2 playing the role of a PAP client. In other words, R1 will be the device that requires authentication, and R2 will be the device that must respond with the correct authentication information.
+R1's s0/0 connects with R2's s0/0.  R1 is the PAP server, and R2 is the PAP client.  In other words, R1 will be the device that requires authentication, and R2 will be the device that must respond with the correct authentication information.
 
 R1 will send username papuser and password cisco, R2 will respond with that.
 
 Task: Set up R1
 
-R1#conf t
+R1#config t
 Enter configuration commands, one per line.  End with CNTL/Z.
 R1(config)#username papuser password cisco
 R1(config)#int s0/0
 R1(config-if)#encapsulation ppp
 *Mar  1 00:04:47.359: %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0, changed state to down
 R1(config-if)#ppp authentication pap
-R1(config-if)#end
+R1(config-if)#exit
+R1(config)#exit
 
 Task: Set up R2
 
-R2#conf t
+R2#config t
 Enter configuration commands, one per line.  End with CNTL/Z.
 R2(config)#int s0/0
 R2(config-if)#encapsulation ppp
 R2(config-if)#ppp pap sent-username papuser password cisco
-R2(config-if)#end
+R1(config-if)#exit
+R1(config)#exit
 *Mar  1 00:08:40.539: %SYS-5-CONFIG_I: Configured from console by console
 *Mar  1 00:08:41.647: %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0, changed state to up
 
