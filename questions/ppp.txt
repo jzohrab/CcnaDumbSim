@@ -1,0 +1,118 @@
+Objective: set up PPP with PAP, CHAP, compression, and multilink.
+
+You have 2 routers, R1 and R2, which both have s0/1/0 and s0/1/1.
+
+R1 setup notes:
+# R1(config)#int s0/1/0
+# R1(config-if)#ip address 10.1.1.1 255.255.255.252
+# R1(config-if)#no shut
+# %LINK-5-CHANGED: Interface Serial0/1/0, changed state to down
+# R1(config-if)#int s0/1/1
+# R1(config-if)#ip address 10.1.1.5 255.255.255.252
+# R1(config-if)#no shut
+# %LINK-5-CHANGED: Interface Serial0/1/1, changed state to down
+
+R2 setup notes:
+# R2(config)#int s0/1/0
+# R2(config-if)#ip address 10.1.1.2 255.255.255.252
+# R2(config-if)#no shut
+# %LINK-5-CHANGED: Interface Serial0/1/0, changed state to up
+# %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/0, changed state to up
+# R2(config-if)#int s0/1/1
+# R2(config-if)#ip address 10.1.1.6 255.255.255.252
+# R2(config-if)#no shut
+# %LINK-5-CHANGED: Interface Serial0/1/1, changed state to up
+# %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/1, changed state to up
+
+Task: set up ppp on R1 for both interfaces.
+
+R1(config)#int s0/1/0
+R1(config-if)#encapsulation ppp
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/0, changed state to down
+R1(config-if)#exit
+R1(config)#int s0/1/1
+R1(config-if)#encapsulation ppp
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/1, changed state to down
+R1(config-if)#exit
+
+Complete: done, R2 is similar:
+
+# R2(config-if)#int s0/1/0
+# R2(config-if)#encap ppp
+# %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/0, changed state to up
+# R2(config-if)#int s0/1/1
+# R2(config-if)#encap ppp
+# %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/1, changed state to up
+# R2(config-if)#exit
+
+
+show ip int brief: 
+Interface              IP-Address      OK? Method Status                Protocol
+...
+Serial0/1/0            10.1.1.1        YES manual up                    up
+Serial0/1/1            10.1.1.5        YES manual up                    up
+
+
+Task: set up PAP on int s0/1/0 for each, with R1 as the server, R2 as client.  Username/pass papuser/pappass.
+
+R1(config)#username papuser password pappass
+R1(config)#int s0/1/0
+R1(config-if)#ppp authentication pap
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/0, changed state to down
+
+Task: set up R2 client for this PAP.
+
+R2: %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/0, changed state to down
+R2(config)#int s0/1/0
+R2(config-if)#ppp pap sent-username papuser password pappass
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/0, changed state to up
+R2(config-if)#exit
+
+Complete: Done!  R2 is sending username papuser and the password.
+
+Task: set up CHAP on int s0/1/1 for each, with password chappass.
+
+R1(config)#username R2 password chappass
+R1(config)#int s0/1/1
+R1(config-if)#ppp authentication chap
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/1, changed state to down
+R1(config-if)#exit
+
+and on R2:
+R2(config)#username R1 password chappass
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/1, changed state to up
+R2(config)#int s0/1/1
+R2(config-if)#ppp authentication chap
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/1, changed state to down
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/1/1, changed state to up
+R1(config-if)#exit
+
+Task: set up compression (stac), reliable link on R1 s0/1/0.
+
+R1(config)#int s0/1/0
+R1(config-if)#compress stac
+R1(config-if)#ppp reliable-link
+
+Note: Cisco recommends stac, there are a few options.
+Note: you then need to do the same thing on R2, omitted ... you can send some data, and then use "show compress" to see the compression.  You can say "show int s0/1/0" to see e.g., retransmitted frames (reTx)
+
+Note reliable-link doesn't play well with multilink.
+
+Task: set up Multilink 1 on R1, with IP 10.1.1.1/30, so all of these physical lines are grouped into a single line.  Add s0/1/0 and s0/1/1 to this multilink.
+
+R1(config)#int multilink 1
+R1(config-if)#ip address 10.1.1.1 255.255.255.252
+R1(config-if)#ppp multilink
+R1(config-if)#exit
+R1(config)#int s0/1/0
+R1(config-if)#no ip address
+R1(config-if)#ppp multilink group 1
+R1(config-if)#exit
+R1(config)#int s0/1/1
+R1(config-if)#no ip address
+R1(config-if)#ppp multilink group 1
+R1(config-if)#exit
+
+Note: Then do the same thing on the other side, and all good!
+
+Complete: all done!  Set up pap, chap, compression, reliable-link, and multilink!
