@@ -36,4 +36,14 @@ SW(config-if)#ip address 192.168.20.254 255.255.255.0
 SW(config-if)#exit
 SW(config)#exit
 
+Task: f0/3 connects from this L3 switch to a router.  The router has ip 1.1.1.1/30.  Set up f3 so it can work with the router.
+
+SW(config)#int f0/3
+SW(config-if)#no switchport
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/3, changed state to down
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/3, changed state to up
+SW(config-if)#ip address 1.1.1.2 255.255.255.252
+SW(config-if)#exit
+SW(config)#exit
+
 Complete: Done!
