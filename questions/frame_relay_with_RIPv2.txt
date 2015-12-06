@@ -10,10 +10,11 @@ R1(config-if)#no shut
 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/0, changed state to up
 R1(config-if)#exit
 
-Task: set up R1 frame-relay over s0/0/0 with subinterfaces.  DLCI 102 should have IP address 10.1.1.1/30 (set that up first, then the DLCI).  We'll set up DLCI 103 later.
+Task: set up R1 frame-relay over s0/0/0 with subinterfaces, with ansi LMI.  DLCI 102 should have IP address 10.1.1.1/30 (set that up first, then the DLCI).  We'll set up DLCI 103 later.
 
 R1(config)#int s0/0/0
 R1(config-if)#encapsulation frame-relay
+R1(config-if)#frame-relay lmi-type ansi
 R1(config-if)#no shut
 %LINK-5-CHANGED: Interface Serial0/0/0, changed state to up
 %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
@@ -31,6 +32,7 @@ Task: set up R2.  Its f0/0 is already set up, so set up s0/0/0 with ip address 1
 R2(config)#int s0/0/0 point-to-point
 R2(config-if)#ip address 10.1.1.2 255.255.255.252
 R2(config-if)#encapsulation frame-relay
+R1(config-if)#frame-relay lmi-type ansi
 R2(config-if)#frame-relay interface-dlci 201
 R2(config-if)#no shut
 %LINK-5-CHANGED: Interface Serial0/0/0, changed state to up
@@ -69,6 +71,7 @@ Task: R3's f0/0 has been set up, so set up its s0/0/0 (dlci 301 goes to R1, set 
 R3(config)#int s0/0/0 point-to-point
 R3(config-if)#ip address 10.1.1.6 255.255.255.252
 R3(config-if)#encapsulation frame-relay
+R1(config-if)#frame-relay lmi-type ansi
 R3(config-if)#frame-relay interface-dlci 301
 R3(config-if)#no shut
 %LINK-5-CHANGED: Interface Serial0/0/0, changed state to up
