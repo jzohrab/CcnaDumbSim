@@ -1,33 +1,6 @@
 Title: etherchannel using LACP
 Objective: set up etherchannel on a switch to carry multiple vlans on ports f0/1 and f0/2.
 
-Task: ensure that VLAN info propagates out f0/1.  Use name "something".
-
-S1(config)#vtp mode server
-S1(config)#vtp domain something
-Changing VTP domain name from NULL to something
-S1(config)#int f0/1
-S1(config-if)#switchport mode trunk
-%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to down
-%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to up
-
-Task: create vlans A and B, with numbers 10 and 20
-S1(config)#vlan 10
-S1(config-vlan)#name A
-S1(config-vlan)#exit
-
-Note: Setting up vlan B is the same
-Note: At this point, if you go to the other switch and look, it should have VLANs.  If not, set its mode to client.
-
-Task: add port f0/10 to vlan A
-S1(config)#int f0/10
-S1(config-if)#switchport mode access
-S1(config-if)#switchport access vlan 10
-S1(config-if)#exit
-
-Note: setting up f0/20 to B is the same
-Note: you could set up portfast and bpduguard here, we'll skip that.
-
 Task: group FastEth channels 1 and 2 using LACP.
 
 S1(config)#int range f0/1-2
@@ -39,12 +12,15 @@ Creating a port-channel interface Port-channel 1
 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to up
 S1(config-if-range)#exit
 
-Task: ensure these two grouped channels can carry the VLANs.
+Task: Set this up as a trunk, using the right encapsulation!
 S1(config)#int port-channel 1
 S1(config-if)#switchport mode trunk
+S1(config-if)#switchport trunk encapsulation dot1q
 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to down
 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to up
 S1(config-if)#exit
 S1(config)#exit
+
+Note: do the same thing on the other side.  Note that the speed, duplex, and VLAN must match!
 
 Complete: Done! But don't forget to do the other side!!
