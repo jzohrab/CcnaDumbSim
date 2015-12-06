@@ -23,4 +23,45 @@ S1(config)#exit
 
 Note: do the same thing on the other side.  Note that the speed, duplex, and VLAN must match!
 
+
+Task: get a listing of all etherchannels and assigned ports.
+
+S1#show etherchannel summary 
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(P) Fa0/2(P)
+
+
+The other command you could use:
+show etherchannel port-channel
+
+Task: check the load balancing you're using!
+
+S1#show etherchannel load-balance 
+EtherChannel Load-Balancing Operational State (src-mac):
+Non-IP: Source MAC address
+  IPv4: Source MAC address
+  IPv6: Source MAC address
+
+Task: Change the load balancing algorithm to use src-dst-mac
+
+S1#config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+S1(config)#port-channel load-balance src-dst-mac
+S1(config)#exit
+
+
 Complete: Done! But don't forget to do the other side!!
