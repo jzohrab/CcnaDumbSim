@@ -1,0 +1,111 @@
+Objective: configure ospfv3
+
+Here's some R1 data:
+
+# R1(config)#do show ipv6 int brief
+# FastEthernet0/0            [up/up]
+#     FE80::201:C9FF:FE79:CD01
+#     2000:1::1
+# FastEthernet0/1            [up/down]
+#     FE80::201:C9FF:FE79:CD02
+#     2000:2::1
+# Vlan1                      [administratively down/down]
+
+Task: First set up ipv6 routing and Cisco express forwarding.  Set up ospfv3, process 1, and set the router id to 1.1.1.1.  Set default cost to be 10000, since we're dealing with slow links.  Then add each interface in order.
+
+R1(config)#ipv6 unicast-routing
+R1(config)#ipv6 cef
+R1(config)#ipv6 router ospf 1
+%OSPFv3-4-NORTRID: OSPFv3 process 1 could not pick a router-id,please configure manually
+R1(config-rtr)#router-id 1.1.1.1
+R1(config-rtr)#auto-cost reference-bandwidth 10000
+% OSPF: Reference bandwidth is changed.
+        Please ensure reference bandwidth is consistent across all routers.
+R1(config-rtr)#exit
+
+Now set up the interfaces ...
+
+R1(config)#int f0/0
+R1(config-if)#ipv6 ospf 1 area 0
+R1(config-if)#exit
+R1(config)#int f0/1
+R1(config-if)#ipv6 ospf 1 area 0
+R1(config-if)#exit
+
+Task: f0/0 connects out to hosts only, and you don't want to sent ospf info out that interface.
+R1(config)#ipv6 router ospf 1
+R1(config-rtr)#passive-interface f0/0
+R1(config-rtr)#exit
+R1(config)#exit
+
+Complete: Done R1!
+
+Note R2 is similar ...
+
+# R2#config t
+# Enter configuration commands, one per line.  End with CNTL/Z.
+# R2(config)#ipv6 unicast-routing
+# R2(config)#ipv6 cef
+# %IPv6 CEF was enabled but you must enable IPv4 CEF to make it run
+# R2(config)#ipv6 router ospf 1
+# %OSPFv3-4-NORTRID: OSPFv3 process 1 could not pick a router-id,please # configure manually
+# R2(config-rtr)#router-id 2.2.2.2
+# R2(config-rtr)#auto-cost reference-bandwidth 10000
+# % OSPF: Reference bandwidth is changed.
+#         Please ensure reference bandwidth is consistent across all routers.
+# R2(config-rtr)#exit
+# R2(config)#int f0/0
+# R2(config-if)#ipv6 ospf 1 area 0
+
+00:28:51: %OSPFv3-5-ADJCHG: Process 1, Nbr 1.1.1.1 on FastEthernet0/0 from LOADING to FULL, Loading Done
+
+Task: show the routes!
+
+R2#show ipv6 route
+IPv6 Routing Table - 6 entries
+Codes: C - Connected, L - Local, S - Static, R - RIP, B - BGP
+       U - Per-user Static route, M - MIPv6
+       I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea, IS - ISIS summary
+       O - OSPF intra, OI - OSPF inter, OE1 - OSPF ext 1, OE2 - OSPF ext 2
+       ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+       D - EIGRP, EX - EIGRP external
+O   2000:1::/64 [110/2]
+     via FE80::201:C9FF:FE79:CD02, FastEthernet0/0
+C   2000:2::/64 [0/0]
+     via ::, FastEthernet0/0
+L   2000:2::2/128 [0/0]
+     via ::, FastEthernet0/0
+C   2000:3::/64 [0/0]
+     via ::, Serial0/1/0
+L   2000:3::2/128 [0/0]
+     via ::, Serial0/1/0
+L   FF00::/8 [0/0]
+     via ::, Null0
+
+
+Task: show the interfaces.
+
+R3#show ipv6 int brief
+FastEthernet0/0            [up/up]
+    FE80::206:2AFF:FE24:1301
+    2000:4::3
+FastEthernet0/1            [administratively down/down]
+Serial0/0/0                [up/up]
+    FE80::206:2AFF:FE24:1301
+    2000:3::3
+Serial0/0/1                [administratively down/down]
+Vlan1                      [administratively down/down]
+
+Task: show the protocols.
+
+R3#show ipv6 protocol
+IPv6 Routing Protocol is "connected"
+IPv6 Routing Protocol is "static"
+IPv6 Routing Protocol is "ospf 1"
+  Interfaces (Area 0)
+    Serial0/0/0
+    FastEthernet0/0
+  Redistribution:
+    None
+
+Complete: all done!
