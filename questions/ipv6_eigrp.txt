@@ -14,6 +14,7 @@ R1(config-if)#exit
 
 Task: Set up eigrp (sys 100)
 R1(config)#ipv6 router eigrp 100
+R1(config-rtr)#router-id 2.2.2.2
 R1(config-rtr)#no shut
 R1(config-rtr)#int f0/0
 R1(config-if)#ipv6 eigrp 100
