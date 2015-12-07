@@ -9,6 +9,13 @@ R1(config-if)#standby 1 priority 105
 %HSRP-6-STATECHANGE: FastEthernet0/0 Grp 1 state Standby -> Active
 R1(config-if)#standby 1 preempt
 R1(config-if)#standby 1 track f0/1 20
+
+Note: if you could also specify the version and timers.  Do that here.
+
+Task: use version 2, and specify the hello timer 100 ms, holdtime as 300 ms.
+R1(config-if)#standby version 2
+R1(config-if)#standby 1 timers msec 100 msec 300
+
 R1(config-if)#exit
 R1(config)#exit
 
