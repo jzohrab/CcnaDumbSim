@@ -1,0 +1,63 @@
+Objective: set up plain text auth for OSPF routers.
+
+Task: Router RIGHT is connected to LEFT out of its f0/1.  Set up plain text authentication for it, using password "cisco".
+
+# RIGHT(config-if)#do show ip protocols
+# Routing Protocol is "ospf 1"
+# ...
+#   Routing for Networks:
+#     192.168.20.254 0.0.0.0 area 0
+#     10.0.0.2 0.0.0.0 area 0
+
+
+RIGHT(config)#int f0/1
+RIGHT(config-if)#ip ospf authentication-key cisco
+RIGHT(config-if)#exit
+RIGHT(config)#router ospf 1
+RIGHT(config-router)#area 0 authentication
+RIGHT(config-router)#exit
+
+Task: verify that it's set.
+
+RIGHT#show ip ospf int f0/1
+FastEthernet0/1 is up, line protocol is up
+  Internet address is 10.0.0.2/30, Area 0
+...
+  Simple password authentication enabled
+
+
+Note: you have to set the same thing up with the same authentication-key on the other router!
+
+Complete: plain-text authentication complete.
+
+Task: plain-text auth is weak.  Replace with md5 hashed.  Assume the old auth has been completely removed already.  Use key ID 1, password cisco.
+
+LEFT(config)#int f0/1
+LEFT(config-if)#ip ospf message-digest-key 1 md5 cisco
+LEFT(config-if)#exit
+LEFT(config)#router ospf 1
+LEFT(config-router)#area 0 authentication message-digest 
+LEFT(config-router)#exit
+LEFT(config)#exit
+
+Task: now set up the RIGHT (on its f0/1)
+
+RIGHT(config)#int f0/1
+RIGHT(config-if)#ip ospf message-digest-key 1 md5 cisco
+RIGHT(config-if)#exit
+RIGHT(config)#router ospf 1
+RIGHT(config-router)#area 0 authentication message-digest
+RIGHT(config-router)#exit
+00:08:58: %OSPF-5-ADJCHG: Process 1, Nbr 192.168.10.254 on FastEthernet0/1 from LOADING to FULL, Loading Done
+RIGHT(config)#exit
+%SYS-5-CONFIG_I: Configured from console by console
+
+Task: show it's set up on f0/1.
+
+RIGHT#show ip ospf int f0/1
+FastEthernet0/1 is up, line protocol is up
+...
+Message digest authentication enabled
+    Youngest key id is 1
+
+Complete: all done!
