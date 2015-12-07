@@ -1,0 +1,56 @@
+Objective: set up eigrp authentication.
+
+Router R1's f0/1 is connected to R2's f0/0.  Both are running EIGRP.  Set up eigrp authentication.
+
+Task: set up R1 eigrp auth with key chain DEMO, and first key cisco.
+
+R1(config)#key chain DEMO
+R1(config-keychain)#key 1
+R1(config-keychain-key)#key-string cisco
+R1(config-keychain-key)#exit
+R1(config-keychain)#exit
+
+# Note:
+# R1(config)#do show ip protocols
+# Routing Protocol is "eigrp  100 " 
+
+R1(config)#int f0/1
+R1(config-if)#ip authentication key-chain eigrp 100 DEMO
+%DUAL-5-NBRCHANGE: IP-EIGRP(0) 1: Neighbor 10.1.1.14 (FastEthernet0/1) is down: keychain changed
+%DUAL-5-NBRCHANGE: IP-EIGRP 1: Neighbor 10.1.1.14 (FastEthernet0/1) is up: new adjacency
+R1(config-if)#ip authentication mode eigrp 100 md5
+%DUAL-5-NBRCHANGE: IP-EIGRP(0) 1: Neighbor 10.1.1.14 (FastEthernet0/1) is down: authentication mode changed
+R1(config-if)#exit
+R1(config)#exit
+
+Complete: done R1.
+
+Task: Now do R2.
+
+# Notes:
+# R2(config)#do show ip eigrp neighbors
+# R2(config)#do show ip protocols
+# Routing Protocol is "eigrp  1 "
+
+R2(config)#key chain DEMO
+R2(config-keychain)#key 1
+R2(config-keychain-key)#key-string cisco
+R2(config-keychain-key)#exit
+R2(config-keychain)#exit
+R2(config)#int f0/0
+R2(config-if)#ip authentication key-chain eigrp 1 DEMO
+R2(config-if)#ip authentication mode eigrp 1 md5
+%DUAL-5-NBRCHANGE: IP-EIGRP 1: Neighbor 10.1.1.13 (FastEthernet0/0) is up: new adjacency
+R2(config-if)#exit
+R2(config)#exit
+%SYS-5-CONFIG_I: Configured from console by console
+
+Task: verify neighborship.
+
+R2#show ip eigrp neighbors
+IP-EIGRP neighbors for process 1
+H   Address         Interface      Hold Uptime    SRTT   RTO   Q   Seq
+                                   (sec)          (ms)        Cnt  Num
+1   10.1.1.13       Fa0/0          10   00:00:14  40     1000  0   255
+
+Complete: Done!
