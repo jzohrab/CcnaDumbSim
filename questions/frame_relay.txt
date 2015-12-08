@@ -1,0 +1,220 @@
+Objective: you have 3 routers, R1, R2, R3, to connect via Frame Relay.  All of them are connected to the central Frame Relay provider via s0/0/0, with IP address 10.1.1.1/24, .2/24, and .3/24 respectively.
+
+This is partial mesh:
+R1 DLCI to R2: 102
+R2 DLCI to R1: 201
+R1 DLCI to R3: 103
+R3 DLCI to R1: 301
+
+The frame relay provider uses ANSI LMI.
+
+Task: set up frame relay on R1.
+
+R1(config)#int s0/0/0
+R1(config-if)#encapsulation frame-relay
+R1(config-if)#frame-relay lmi-type ansi
+R1(config-if)#exit
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+
+Note: the other routers are identical:
+# R2(config)#int s0/0/0
+# R2(config-if)#encapsulation frame-relay
+# R2(config-if)#frame-relay lmi-type ansi
+# R2(config-if)#exit
+# R2(config)#do copy run start
+# Destination filename [startup-config]? 
+# Building configuration...
+# [OK]
+# R2(config)#
+# %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+#
+# and R3 is too.
+
+Task: show the current circuits set up.
+
+R1#show frame-relay pvc
+
+PVC Statistics for interface Serial0/0/0 (Frame Relay DTE)
+DLCI = 102, DLCI USAGE = LOCAL, PVC STATUS = ACTIVE, INTERFACE = Serial0/0/0
+
+input pkts 14055       output pkts 32795        in bytes 1096228
+out bytes 6216155      dropped pkts 0           in FECN pkts 0
+in BECN pkts 0         out FECN pkts 0          out BECN pkts 0
+in DE pkts 0           out DE pkts 0
+out bcast pkts 32795   out bcast bytes 6216155
+
+DLCI = 103, DLCI USAGE = LOCAL, PVC STATUS = ACTIVE, INTERFACE = Serial0/0/0
+
+input pkts 14055       output pkts 32795        in bytes 1096228
+out bytes 6216155      dropped pkts 0           in FECN pkts 0
+in BECN pkts 0         out FECN pkts 0          out BECN pkts 0
+in DE pkts 0           out DE pkts 0
+out bcast pkts 32795   out bcast bytes 6216155
+
+Task: show what IP addresses you can reach over the DLCIs.
+
+R1#show frame-relay map
+Serial0/0/0 (up): ip 10.1.1.2 dlci 102, dynamic, 
+              broadcast, 
+              CISCO, status defined, active
+Serial0/0/0 (up): ip 10.1.1.3 dlci 103, dynamic, 
+              broadcast, 
+              CISCO, status defined, active
+
+Note: this dynamic mapping included the broadcast keyword!
+
+Task: ping the .2 router
+
+R1#ping 10.1.1.2
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.1.1.2, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 8/24/50 ms
+
+Complete: you have connectivity!
+
+Note that R2 currently only sees R1:
+# R2#show frame-relay map
+# Serial0/0/0 (up): ip 10.1.1.1 dlci 201, dynamic, 
+#               broadcast, 
+#               CISCO, status defined, active
+
+So R2 can't reach R3.  You could set up another PVC connecting R2 to R3, which would fix the routing, but that may get expensive.
+
+Task: add a mapping so that R2 can reach R3.
+
+R2(config)#int s0/0/0
+R2(config-if)#frame-relay map ip 10.1.1.3 201 broadcast
+R2(config-if)#end
+
+... and so R3 can reach R2.
+
+R3(config)#int s0/0/0
+R3(config-if)#frame-relay map ip 10.1.1.2 301 broadcast
+R3(config-if)#exit
+
+Verify mapping is done:
+
+R3#show frame-relay map
+Serial0/0/0 (up): ip 10.1.1.1 dlci 301, dynamic, 
+              broadcast, 
+              CISCO, status defined, active
+Serial0/0/0 (up): ip 10.1.1.2 dlci 301, static, 
+              broadcast, 
+              CISCO, status defined, active
+	      
+Note we have a major problem ... statically mapping frame relay disables Inverse ARP.  Verify it by reloading, and then checking the map.
+
+R2#reload
+Proceed with reload? [confirm]
+System Bootstrap, Version 12.3(8r)T8, RELEASE SOFTWARE (fc1)
+Initializing memory for ECC
+.. snip ...... ...
+
+Press RETURN to get started!
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+
+R2>en
+R2#show frame-relay map
+Serial0/0/0 (up): ip 10.1.1.3 dlci 201, static, 
+              broadcast, 
+              CISCO, status defined, active
+
+Note the dynamic mapping disappeared!
+
+Note R1's mappings would remain on reboot, since they were all static.
+
+You could add a static mapping for R2-R3 and R3-R2 to work around that ... but that starts to get tiresome ... so you wipe everything on the routers and start again.
+
+
+Task: set up point-to-point on R1 with subinterfaces.  DLCI 102 has ip 10.1.1.1, 103 has 10.1.2.1
+
+R1(config)#int s0/0/0
+R1(config-if)#encapsulation frame-relay
+R1(config-if)#frame-relay lmi-type ansi
+R1(config-if)#no shut
+R1(config-if)#exit
+%LINK-5-CHANGED: Interface Serial0/0/0, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+R1(config)#int s0/0/0.102 point-to-point
+%LINK-5-CHANGED: Interface Serial0/0/0.102, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0.102, changed state to up
+R1(config-subif)#ip address 10.1.1.1 255.255.255.0
+R1(config-subif)#frame-relay interface-dlci 102
+R1(config-subif)#exit
+R1(config)#int s0/0/0.103 point-to-point
+%LINK-5-CHANGED: Interface Serial0/0/0.103, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0.103, changed state to up
+R1(config-subif)#ip address 10.1.2.1 255.255.255.0
+R1(config-subif)#frame-relay interface-dlci 103
+R1(config-subif)#exit
+
+Task: check the mappings:
+
+R1#show frame-relay map
+Serial0/0/0.102 (up): point-to-point dlci, dlci 102, broadcast, status defined, active
+Serial0/0/0.103 (up): point-to-point dlci, dlci 103, broadcast, status defined, active
+
+Note you don't see the remote IP, because if you go out this DLCI then the destination is assumed (point-to-point).
+
+Task: set up frame relay with subints on R2.  Note with R2 you only go back to R1.  R2 s0/0/0 ip is 10.1.1.2/24.
+
+R2(config)#int s0/0/0
+R2(config-if)#no ip address
+R2(config-if)#encapsulation frame-relay
+R2(config-if)#frame-relay lmi-type ansi
+R2(config-if)#no shut
+%LINK-5-CHANGED: Interface Serial0/0/0, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+R2(config-if)#exit
+R2(config)#int s0/0/0.201 point-to-point
+%LINK-5-CHANGED: Interface Serial0/0/0.201, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0.201, changed state to up
+R2(config-subif)#ip address 10.1.1.2 255.255.255.0
+R2(config-subif)#frame-relay interface-dlci 201
+R2(config-subif)#exit
+R2(config)#exit
+
+
+Task: Now do the same for R3.  DLCI 301 has IP 10.1.2.3/24.
+
+R3(config)#int s0/0/0
+R3(config-if)#no ip address
+R3(config-if)#encapsulation frame-relay
+R3(config-if)#frame-relay lmi-type ansi
+R3(config-if)#no shut
+%LINK-5-CHANGED: Interface Serial0/0/0, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+R3(config-if)#exit
+R3(config)#int s0/0/0.301 point-to-point
+%LINK-5-CHANGED: Interface Serial0/0/0.301, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0.301, changed state to up
+R3(config-subif)#ip address 10.1.2.3 255.255.255.0
+R3(config-subif)#frame-relay interface-dlci 301
+R3(config-subif)#exit
+R3(config)#exit
+
+Everything is set up correctly, but you still can't ping everything.  Note R1's IPs:
+
+# R1#show ip int brief
+# Interface              IP-Address ...
+# Serial0/0/0.102        10.1.1.1 ...
+# Serial0/0/0.103        10.1.2.1 ...
+
+R3 can ping 10.1.2.1, but it can't ping 10.1.1.1.  This is because its DLCI connects to the subinterface with 10.1.1.1.  It also can't ping R2.
+
+Task: you still can't ping the other router.  Set up a static route!
+
+R3(config)#ip route 0.0.0.0 0.0.0.0 s0/0/0.301
+R3(config)#exit
+
+and it's needed on R2 as well for it to reply to pings ... once that is set up:
+
+# R3#ping 10.1.1.2
+# Type escape sequence to abort.
+# Sending 5, 100-byte ICMP Echos to 10.1.1.2, timeout is 2 seconds:
+# !!!!!
+
+Complete: all done setting up Frame Relay with subinterfaces!
+
