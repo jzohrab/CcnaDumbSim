@@ -1,0 +1,130 @@
+Objective: you have 3 routers, R1, R2, R3, to connect via Frame Relay.  All of them are connected to the central Frame Relay provider via s0/0/0, with IP address 10.1.1.1/24, .2/24, and .3/24 respectively.
+
+This is partial mesh:
+R1 DLCI to R2: 102
+R2 DLCI to R1: 201
+R1 DLCI to R3: 103
+R3 DLCI to R1: 301
+
+The frame relay provider uses ANSI LMI.
+
+Task: set up frame relay on R1.
+
+R1(config)#int s0/0/0
+R1(config-if)#encapsulation frame-relay
+R1(config-if)#frame-relay lmi-type ansi
+R1(config-if)#exit
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+
+Note: the other routers are identical:
+# R2(config)#int s0/0/0
+# R2(config-if)#encapsulation frame-relay
+# R2(config-if)#frame-relay lmi-type ansi
+# R2(config-if)#exit
+# R2(config)#do copy run start
+# Destination filename [startup-config]? 
+# Building configuration...
+# [OK]
+# R2(config)#
+# %LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+#
+# and R3 is too.
+
+Task: show the current circuits set up.
+
+R1#show frame-relay pvc
+
+PVC Statistics for interface Serial0/0/0 (Frame Relay DTE)
+DLCI = 102, DLCI USAGE = LOCAL, PVC STATUS = ACTIVE, INTERFACE = Serial0/0/0
+
+input pkts 14055       output pkts 32795        in bytes 1096228
+out bytes 6216155      dropped pkts 0           in FECN pkts 0
+in BECN pkts 0         out FECN pkts 0          out BECN pkts 0
+in DE pkts 0           out DE pkts 0
+out bcast pkts 32795   out bcast bytes 6216155
+
+DLCI = 103, DLCI USAGE = LOCAL, PVC STATUS = ACTIVE, INTERFACE = Serial0/0/0
+
+input pkts 14055       output pkts 32795        in bytes 1096228
+out bytes 6216155      dropped pkts 0           in FECN pkts 0
+in BECN pkts 0         out FECN pkts 0          out BECN pkts 0
+in DE pkts 0           out DE pkts 0
+out bcast pkts 32795   out bcast bytes 6216155
+
+Task: show what IP addresses you can reach over the DLCIs.
+
+R1#show frame-relay map
+Serial0/0/0 (up): ip 10.1.1.2 dlci 102, dynamic, 
+              broadcast, 
+              CISCO, status defined, active
+Serial0/0/0 (up): ip 10.1.1.3 dlci 103, dynamic, 
+              broadcast, 
+              CISCO, status defined, active
+
+Note: this dynamic mapping included the broadcast keyword!
+
+Task: ping the .2 router
+
+R1#ping 10.1.1.2
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.1.1.2, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 8/24/50 ms
+
+Complete: you have connectivity!
+
+Note that R2 currently only sees R1:
+# R2#show frame-relay map
+# Serial0/0/0 (up): ip 10.1.1.1 dlci 201, dynamic, 
+#               broadcast, 
+#               CISCO, status defined, active
+
+So R2 can't reach R3.  You could set up another PVC connecting R2 to R3, which would fix the routing, but that may get expensive.
+
+Task: add a mapping so that R2 can reach R3.
+
+R2(config)#int s0/0/0
+R2(config-if)#frame-relay map ip 10.1.1.3 201 broadcast
+R2(config-if)#end
+
+... and so R3 can reach R2.
+
+R3(config)#int s0/0/0
+R3(config-if)#frame-relay map ip 10.1.1.2 301 broadcast
+R3(config-if)#exit
+
+Verify mapping is done:
+
+R3#show frame-relay map
+Serial0/0/0 (up): ip 10.1.1.1 dlci 301, dynamic, 
+              broadcast, 
+              CISCO, status defined, active
+Serial0/0/0 (up): ip 10.1.1.2 dlci 301, static, 
+              broadcast, 
+              CISCO, status defined, active
+	      
+Note we have a major problem ... statically mapping frame relay disables Inverse ARP.  Verify it by reloading, and then checking the map.
+
+R2#reload
+Proceed with reload? [confirm]
+System Bootstrap, Version 12.3(8r)T8, RELEASE SOFTWARE (fc1)
+Initializing memory for ECC
+.. snip ...... ...
+
+Press RETURN to get started!
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+
+R2>en
+R2#show frame-relay map
+Serial0/0/0 (up): ip 10.1.1.3 dlci 201, static, 
+              broadcast, 
+              CISCO, status defined, active
+
+Note the dynamic mapping disappeared!
+
+Note R1's mappings would remain on reboot, since they were all static.
+
+You could add a static mapping for R2-R3 and R3-R2 to work around that ... but that starts to get tiresome ... so you wipe everything on the routers and start again.
+
+Complete: all done this initial setup ... but it's not as good as point-to-point.
