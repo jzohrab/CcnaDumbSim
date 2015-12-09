@@ -1,74 +1,65 @@
-The two routers R1 and R3 are in separate areas, they connect to the WAN on the 10.x.x.x network.  Ref notes below:
+The two routers A and B are in separate areas, they connect to the WAN via frame relay on their s0/0/0 interfaces on the 10.x.x.x network.  Ref notes below:
 
-# R1#show ip int brief
-# Interface              IP-Address      OK? Method Status                Protocol
-# FastEthernet0/0        192.168.10.254  YES manual up                    up
-# FastEthernet0/1        10.0.0.1        YES manual up                    up
+# A#show ip int brief
+# Interface              IP-Address      OK? Method Status ...
+# FastEthernet0/0        192.168.1.254   YES manual up  ...
+# Serial0/0/0            10.1.1.1        YES manual up  ...
 
-# R3#show ip int brief
-# Interface              IP-Address      OK? Method Status                Protocol
-# FastEthernet0/0        10.0.0.6        YES manual up                    up
-# FastEthernet0/1        192.168.20.254  YES manual up                    up
+# B#show ip int brief
+# Interface              IP-Address      OK? Method Status ...
+# FastEthernet0/0        192.168.2.254   YES manual up  ...
+# Serial0/0/0            10.1.1.2        YES manual up  ...
 
+Task: create a tunnel on the 172.16.0.0/32 network connecting A to B.  Set the address, source, dest, and mode in that order.  Start with A:
 
-Task: create a tunnel on the 192.168.30.0/24 network connecting R1 to R3, start at the lowest host.  Set the source, dest, and mode in that order.
-
-R1#config t
-Enter configuration commands, one per line.  End with CNTL/Z.
-R1(config)#int tunnel 0
+A(config)#int tunnel 0
+A(config-if)#ip address 172.16.0.1 255.255.255.252
 %LINK-5-CHANGED: Interface Tunnel0, changed state to up
-R1(config-if)#ip address 192.168.30.1 255.255.255.0
-R1(config-if)#tunnel source f0/1
-R1(config-if)#tunnel destination 10.0.0.6
+A(config-if)#tunnel source s0/0/0
+A(config-if)#tunnel destination 10.1.1.2
 %LINEPROTO-5-UPDOWN: Line protocol on Interface Tunnel0, changed state to up
-R1(config-if)#tunnel mode gre ip
-R1(config-if)#exit
-R1(config)#exit
+A(config-if)#tunnel mode gre ip
+A(config-if)#exit
 
-Complete: tunnel done, but it still won't route yet, as this router doesn't know how to reach it.
+Task: now do B:
 
-Task: Add a static route to the R3's .20.0/24 network, going over the tunnel.
+B(config)#int tunnel 0
+%LINK-5-CHANGED: Interface Tunnel0, changed state to up
+B(config-if)#ip address 172.16.0.2 255.255.255.252
+B(config-if)#tunnel source s0/0/0
+B(config-if)#tunnel destination 10.1.1.1
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Tunnel0, changed state to up
+B(config-if)#tunnel mode gre ip
+B(config-if)#exit
 
-R1#config t
-Enter configuration commands, one per line.  End with CNTL/Z.
-R1(config)#ip route 192.168.20.0 255.255.255.0 192.168.30.2
-R1(config)#exit
+Task: hosts attached to router A can't ping yet because there is no routing info.  Attach a default route to both A and B.
+
+A(config)#ip route 0.0.0.0 0.0.0.0 172.16.0.2
+
+B(config)#ip route 0.0.0.0 0.0.0.0 172.16.0.1
 
 Complete: routing is done!
 
 Task: check the routing table, and then show the interfaces (brief).
 
-R1#show ip route
+A#show ip route
 Codes: C - connected, S - static, I - IGRP, R - RIP, M - mobile, B - BGP
 ...
 
-Gateway of last resort is 0.0.0.0 to network 0.0.0.0
+Gateway of last resort is 172.16.0.2 to network 0.0.0.0
 
      10.0.0.0/30 is subnetted, 1 subnets
-C       10.0.0.0 is directly connected, FastEthernet0/1
-C    192.168.10.0/24 is directly connected, FastEthernet0/0
-S    192.168.20.0/24 [1/0] via 192.168.30.2
-C    192.168.30.0/24 is directly connected, Tunnel0
-S*   0.0.0.0/0 is directly connected, FastEthernet0/1
+C       10.1.1.0 is directly connected, Serial0/0/0
+     172.16.0.0/30 is subnetted, 1 subnets
+C       172.16.0.0 is directly connected, Tunnel0
+C    192.168.1.0/24 is directly connected, FastEthernet0/0
+S*   0.0.0.0/0 [1/0] via 172.16.0.2
 
-R1#show ip int brief
-Interface              IP-Address      OK? Method Status                Protocol
-FastEthernet0/0        192.168.10.254  YES manual up                    up
-FastEthernet0/1        10.0.0.1        YES manual up                    up
-Tunnel0                192.168.30.1    YES manual up                    up
-Vlan1                  unassigned      YES unset  administratively down down
 
-Note: the other router is similar:
-
-# R3(config)#int tunnel 0
-# %LINK-5-CHANGED: Interface Tunnel0, changed state to up
-# R3(config-if)#ip address 192.168.30.2 255.255.255.0
-# R3(config-if)#tunnel source f0/0
-# R3(config-if)#tunnel destination 10.0.0.1
-# %LINEPROTO-5-UPDOWN: Line protocol on Interface Tunnel0, changed state to up
-# R3(config-if)#tunnel mode gre ip
-# R3(config-if)#exit
-# R3(config)#ip route 192.168.10.0 255.255.255.0 192.168.30.1   ! static route
-# R3(config)#exit
+A#show ip int brief
+Interface              IP-Address      OK? Method Status ... 
+FastEthernet0/0        192.168.1.254   YES manual up     ...
+Serial0/0/0            10.1.1.1        YES manual up     ...
+Tunnel0                172.16.0.1      YES manual up     ...
 
 Complete: all done!  Can ping!!!
