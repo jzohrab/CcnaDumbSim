@@ -8,7 +8,7 @@ R3 DLCI to R1: 301
 
 The frame relay provider uses ANSI LMI.
 
-Task: set up frame relay on R1.
+Task: set up frame relay on R1.  Note the IPs have already been set up.
 
 R1(config)#int s0/0/0
 R1(config-if)#encapsulation frame-relay
@@ -85,7 +85,7 @@ Task: add a mapping so that R2 can reach R3.
 
 R2(config)#int s0/0/0
 R2(config-if)#frame-relay map ip 10.1.1.3 201 broadcast
-R2(config-if)#end
+R2(config-if)#exit
 
 ... and so R3 can reach R2.
 
