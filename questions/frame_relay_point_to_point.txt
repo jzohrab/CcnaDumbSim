@@ -85,9 +85,9 @@ Everything is set up correctly, but you still can't ping everything.  Note R1's 
 
 R3 can ping 10.1.2.1, but it can't ping 10.1.1.1.  This is because its DLCI connects to the subinterface with 10.1.1.1.  It also can't ping R2.
 
-Task: you still can't ping the other router.  Set up a static route!
+Task: you still can't ping the other router.  Set up a static route (use the next hop IP)!
 
-R3(config)#ip route 0.0.0.0 0.0.0.0 s0/0/0.301
+R3(config)#ip route 0.0.0.0 0.0.0.0 10.1.2.1
 R3(config)#exit
 
 and it's needed on R2 as well for it to reply to pings ... once that is set up:
