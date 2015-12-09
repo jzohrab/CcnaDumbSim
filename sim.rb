@@ -7,6 +7,15 @@ Dir.chdir('questions') do
   qs = Dir.glob('*.txt')
 end
 
+if (ARGV.size > 0)
+  qs = qs.select { |q| q.downcase =~ /#{ARGV[0].downcase}/ }
+end
+ARGV.clear
+if (qs.size == 0)
+  puts "No questions."
+  exit 0
+end
+
 # Colorizing output for interest.
 # http://stackoverflow.com/questions/1489183/colorized-ruby-output
 class String
@@ -75,13 +84,17 @@ def colorize_line(lin)
   end
 end
 
-puts "Questions:"
-qs.each_with_index do |q, index|
-  puts "  #{index + 1}. #{q.gsub('_', ' ').gsub('.txt', '')}"
+q = qs[0]
+if (qs.size > 1)
+  puts "Questions:"
+  qs.each_with_index do |q, index|
+    puts "  #{index + 1}. #{q.gsub('_', ' ').gsub('.txt', '')}"
+  end
+
+  print "Choose question: "
+  i = gets.strip.to_i
+  q = qs[i - 1]
 end
-print "Choose question: "
-i = gets.strip.to_i
-q = qs[i - 1]
 
 lines = File.read(File.join('questions', q)).split("\n")
 lines.each do |lin|
