@@ -10,7 +10,7 @@ The two routers A and B are in separate areas, they connect to the WAN via frame
 # FastEthernet0/0        192.168.2.254   YES manual up  ...
 # Serial0/0/0            10.1.1.2        YES manual up  ...
 
-Task: create a tunnel on the 172.16.0.0/32 network connecting A to B.  Set the address, source, dest, and mode in that order.  Start with A:
+Task: create a tunnel on the 172.16.0.0/30 network connecting A to B.  Set the address, source, dest, and mode in that order.  Start with A:
 
 A(config)#int tunnel 0
 A(config-if)#ip address 172.16.0.1 255.255.255.252
