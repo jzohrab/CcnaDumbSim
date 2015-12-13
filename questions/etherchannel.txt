@@ -47,8 +47,35 @@ Group  Port-channel  Protocol    Ports
 1      Po1(SU)           LACP   Fa0/1(P) Fa0/2(P)
 
 
-The other command you could use:
-show etherchannel port-channel
+Show port-channel information.
+
+S1#show etherchannel port-channel
+                Channel-group listing:
+                ----------------------
+
+Group: 1
+----------
+                Port-channels in the group:
+                ---------------------------
+
+Port-channel: Po1    (Primary Aggregator)
+------------
+
+Age of the Port-channel   = 00d:00h:00m:47s
+Logical slot/port   = 2/1       Number of ports = 2
+GC                  = 0x00000000      HotStandBy port = null
+Port state          = Port-channel 
+Protocol            =   LACP
+Port Security       = Disabled
+
+Ports in the Port-channel:
+
+Index   Load   Port     EC state        No of bits
+------+------+------+------------------+-----------
+  0     00     Fa0/1   Active             0
+  0     00     Fa0/2   Active             0
+
+
 
 Task: check the load balancing you're using!
 
