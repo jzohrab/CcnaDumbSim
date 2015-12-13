@@ -1,9 +1,11 @@
 Title: etherchannel using LACP
 Objective: set up etherchannel on a switch to carry multiple vlans on ports f0/1 and f0/2.
 
-Task: group FastEth channels 1 and 2 using LACP.
+Task: f0/1 and /2 should be trunked using 802.1q encapsulation, and then should be port channelled using LACP.
 
 S1(config)#int range f0/1-2
+S1(config-if-range)#switchport mode trunk
+S1(config-if-range)#switchport trunk encapsulation dot1q
 S1(config-if-range)#channel-group 1 mode active
 Creating a port-channel interface Port-channel 1
 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to down
